@@ -20,6 +20,34 @@ data class Post(
     var attachment: Attachment
 )
 
+//класс искючения
+class PostNotFoundException(massage: String) : Exception(){
+    override val message: String?
+        get() = "No such post (("
+}
+
+//класс коммент
+class Comment(
+    val commentId: Int,
+    val postId: Int,
+    val authorId: Int,
+    val date: String,
+    val text: String
+) {
+    fun addComment(list: MutableList<Post>, comment: Comment, commentList: MutableList<Comment>) {
+
+        for (thispost in list) {
+            if (comment.postId == thispost.id) {
+                commentList.add(comment)
+                println("Добавлено")
+                break
+            } else {
+                throw PostNotFoundException("0")
+            }
+        }
+    }
+}
+
 // это коллекция постов
 var posts = emptyArray<Post>()
 val list: MutableList<Post> = posts.toMutableList()
@@ -193,7 +221,33 @@ fun main() {
         }
     }
     printArray(theArray)
+
+    //печать комментов
+    fun printComments(commentList: MutableList<Comment>) {
+        for (comment in commentList) {
+            println(comment.text)
+        }
+    }
+
+    //создаем список комментов
+    val commentsList = mutableListOf<Comment>()
+    //создаем объекты Comment
+    val comment1 = Comment(1, 1, 1, "12.01.2022", "классный пост")
+    val comment2 = Comment(2, 20, 1, "13.01.2022", "ужасный пост")
+    //пытаемся добавить оба. Добавится только 1
+    try {
+        comment1.addComment(list, comment1, commentsList)
+        comment2.addComment(list, comment2, commentsList)
+    } catch (e: PostNotFoundException){
+        println(e.message)
+    }
+
+    printComments(commentsList)
 }
+
+
+
+
 
 
 
