@@ -1,27 +1,31 @@
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 data class Post(
     var id: Int,
-    val ownerId: Int,
+    var ownerId: Int,
     val fromId: Int = 1,
     val createdBy: Int = 1,
-    var groupId: Int,
-    val date: Int,
+    val groupId: Int = 5,
+    var date: String = LocalDateTime.now()
+        .format(DateTimeFormatter.ofPattern("MMM dd yyyy, hh:mm:ss a")),
     var text: String?,
-    var replyOwnerId: Int? = 1,
-    var replyPostId: Int? = 1,
-    var friendsOnly: Boolean = true,
-    var singerId: Int = 1,
-    var canPin: Boolean = false,
-    var canDelete: Boolean = false,
-    var canEdit: Boolean = true,
-    var isPinned: Boolean = true,
-    var markedAsAds: Boolean = false,
-    var isFavorite: Boolean = false,
-    var postponedId: Int? = 2,
+    val replyOwnerId: Int? = 1,
+    val replyPostId: Int? = 1,
+    val friendsOnly: Boolean = true,
+    val singerId: Int = 1,
+    val canPin: Boolean = false,
+    val canDelete: Boolean = false,
+    val canEdit: Boolean = true,
+    val isPinned: Boolean = true,
+    val markedAsAds: Boolean = false,
+    val isFavorite: Boolean = false,
+    val postponedId: Int? = 2,
     var attachment: Attachment
 )
 
 //класс искючения
-class PostNotFoundException(massage: String) : Exception(){
+class PostNotFoundException(massage: String) : Exception() {
     override val message: String?
         get() = "No such post (("
 }
@@ -31,11 +35,10 @@ class Comment(
     val commentId: Int,
     val postId: Int,
     val authorId: Int,
-    val date: String,
-    val text: String
+    var date: String,
+    var text: String
 ) {
     fun addComment(list: MutableList<Post>, comment: Comment, commentList: MutableList<Comment>) {
-
         for (thispost in list) {
             if (comment.postId == thispost.id) {
                 commentList.add(comment)
@@ -49,30 +52,32 @@ class Comment(
 }
 
 // это коллекция постов
-var posts = emptyArray<Post>()
-val list: MutableList<Post> = posts.toMutableList()
+object WallService {
+    internal var list: MutableList<Post> = emptyArray<Post>().toMutableList()
 
-fun add(post: Post): MutableList<Post> {
-    if (!list.isEmpty()) {
-        post.id = list.last().id + 1
-        list.add(post)
-    } else {
-        post.id = 1
-        list.add(post)
-    }
-    return list
-}
-
-fun update(post: Post): Boolean {
-    for (postList in list) {
-        if (postList.id == post.id) {
-            postList.groupId = post.groupId
-            postList.text = post.text
-            return true
+    fun add(post: Post): MutableList<Post> {
+        var newPost: Post = post
+        if (!list.isEmpty()) {
+            //post.id = list.last().id + 1
+            newPost = post.copy(id = list.last().id + 1)
+        } else {
+            newPost.id = 1
         }
+        list.add(newPost)
+        return list
     }
-    return false
+
+    fun update(post: Post): Boolean {
+        list.forEach() {
+            if (it.id == post.id) {
+                it.text = post.text
+                return true
+            }
+        }
+        return false
+    }
 }
+
 
 fun printArr(list: MutableList<Post>) {
     for (post in list) {
@@ -153,51 +158,43 @@ val docAttach1: Attachment = DocAttach(Type.DOC, 1, 1, 1, 1)
 fun main() {
     // сначала add
     // специально присвоил идиотские id пусть метод сам разберется как выстроить их подряд
-    val first = Post(
+    var first = Post(
         id = 1,
         ownerId = 2,
-        groupId = 11,
-        date = 161234657,
         text = "курс по Kotlin читается отвратительно",
         attachment = videoAttach1
     )
-    val second = Post(
+    var second = Post(
         id = 3,
         ownerId = 3,
-        groupId = 18,
-        date = 161234138,
         text = "действительно отвратительно",
         attachment = audioAttach1
     )
-    val some = Post(
+    var some = Post(
         id = 8,
         ownerId = 5,
-        groupId = 21,
-        date = 161234254,
         text = "просто ужасно",
         attachment = photoAttach1
     )
-    add(first)
-    add(second)
-    add(some)
-    printArr(list)
+    WallService.add(first)
+    WallService.add(second)
+    WallService.add(some)
+    printArr(WallService.list)
 
     // теперь update
     // создаем Post c id = 2 (такой id есть в системе), его и будем изменять
-    // даем ему все ругие данные, но поменяются только нужные
+    // даем ему все другие данные, но поменяются только нужные
     // поэтому для id=2  ответом будет true, а для id=5  ответом будет false
-    val newPost = Post(
+    var newPost = Post(
         id = 2,
         ownerId = 6,
-        groupId = 22,
-        date = 161234122,
         text = "да, я тоже ничего не понимаю",
         attachment = docAttach1
     )
-    var answer = update(newPost)
+    val answer = WallService.update(newPost)
     println(answer)
     println("_______________________")
-    printArr(list)
+    printArr(WallService.list)
 
     //это массив для Attachment
     var theArray: Array<Attachment> = arrayOf()
@@ -207,7 +204,7 @@ fun main() {
             attachment2: Attachment,
             attachment3: Attachment,
             attachment4: Attachment,
-            attachment5: Attachment
+            attachment5: Attachment,
         ) {
             theArray = arrayOf(attachment1, attachment2, attachment3, attachment4, attachment5)
         }
@@ -236,12 +233,11 @@ fun main() {
     val comment2 = Comment(2, 20, 1, "13.01.2022", "ужасный пост")
     //пытаемся добавить оба. Добавится только 1
     try {
-        comment1.addComment(list, comment1, commentsList)
-        comment2.addComment(list, comment2, commentsList)
-    } catch (e: PostNotFoundException){
+        comment1.addComment(WallService.list, comment1, commentsList)
+        comment2.addComment(WallService.list, comment2, commentsList)
+    } catch (e: PostNotFoundException) {
         println(e.message)
     }
-
     printComments(commentsList)
 }
 
