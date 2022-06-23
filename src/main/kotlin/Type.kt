@@ -104,7 +104,8 @@ class theObject(
     val type: String,
     val id: Int,
     val albumId: Int,
-    val ownerId: Int
+    val ownerId: Int,
+    val userId: Int,
 )
 
 abstract class AttachType(_type: TYPE) {
@@ -113,10 +114,12 @@ abstract class AttachType(_type: TYPE) {
         type,
         (1..100).random(),
         (1..100).random(),
-        (1..100).random())}
+        (1..100).random(),
+        (1..100).random(),
+    )}
 
     override fun toString(): String {
-        return "AttachType(type='$type', info='type - ${info.type}, id - ${info.id}, albumId - ${info.albumId}, ownerId - ${info.ownerId}')"
+        return "AttachType(type='$type', info='type - ${info.type}, id - ${info.id}, albumId - ${info.albumId}, ownerId - ${info.ownerId}, userId - ${info.userId}')"
     }
 }
 
